@@ -1714,7 +1714,10 @@ class TCPRelay(object):
         self.mu_speed_tester_u = {}
         self.mu_speed_tester_d = {}
 
-        self.relay_rules = self._config['relay_rules'].copy()
+        if 'relay_rules' in self._config:
+            self.relay_rules = self._config['relay_rules'].copy()
+        else:
+            self.relay_rules = {}
         self.is_pushing_relay_rules = False
         if 'users_table' in self._config:
             self.multi_user_host_table = {}
@@ -1738,8 +1741,12 @@ class TCPRelay(object):
 
         self.is_pushing_detect_hex_list = False
         self.is_pushing_detect_text_list = False
-        self.detect_hex_list = self._config['detect_hex_list'].copy()
-        self.detect_text_list = self._config['detect_text_list'].copy()
+        if 'detect_hex_list' in self._config:
+            self.detect_hex_list = self._config['detect_hex_list'].copy()
+            self.detect_text_list = self._config['detect_text_list'].copy()
+        else:
+            self.detect_hex_list = {}
+            self.detect_text_list = {}
 
         if 'forbidden_ip' in config:
             self._forbidden_iplist = IPNetwork(config['forbidden_ip'])
