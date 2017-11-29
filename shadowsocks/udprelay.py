@@ -192,8 +192,12 @@ class UDPRelay(object):
 
         self.is_pushing_detect_hex_list = False
         self.is_pushing_detect_text_list = False
-        self.detect_hex_list = self._config['detect_hex_list'].copy()
-        self.detect_text_list = self._config['detect_text_list'].copy()
+        if 'detect_hex_list' in self._config:
+            self.detect_hex_list = self._config['detect_hex_list'].copy()
+            self.detect_text_list = self._config['detect_text_list'].copy()
+        else:
+            self.detect_hex_list = {}
+            self.detect_text_list = {}
 
         self.protocol_data = obfs.obfs(config['protocol']).init_data()
         self._protocol = obfs.obfs(config['protocol'])
@@ -248,7 +252,10 @@ class UDPRelay(object):
         else:
             self._disconnect_ipset = None
 
-        self._relay_rules = self._config['relay_rules'].copy()
+        if 'relay_rules' in self._config:
+            self._relay_rules = self._config['relay_rules'].copy()
+        else:
+            self._relay_rules = {}
         self._is_pushing_relay_rules = False
 
         addrs = socket.getaddrinfo(self._listen_addr, self._listen_port, 0,
