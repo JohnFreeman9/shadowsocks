@@ -15,8 +15,6 @@ import platform
 import datetime
 import fcntl
 
-reload(sys) 
-sys.setdefaultencoding( "utf-8" )
 
 switchrule = None
 db_instance = None

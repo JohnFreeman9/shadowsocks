@@ -21,6 +21,11 @@ import threading
 import os
 import logging
 
+
+reload(sys) 
+sys.setdefaultencoding( "utf-8" )
+
+
 if __name__ == '__main__':
     import inspect
     os.chdir(
