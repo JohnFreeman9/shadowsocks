@@ -192,12 +192,8 @@ class UDPRelay(object):
 
         self.is_pushing_detect_hex_list = False
         self.is_pushing_detect_text_list = False
-        if 'detect_hex_list' in self._config:
-            self.detect_hex_list = self._config['detect_hex_list'].copy()
-            self.detect_text_list = self._config['detect_text_list'].copy()
-        else:
-            self.detect_hex_list = {}
-            self.detect_text_list = {}
+        self.detect_hex_list = self._config['detect_hex_list'].copy()
+        self.detect_text_list = self._config['detect_text_list'].copy()
 
         self.protocol_data = obfs.obfs(config['protocol']).init_data()
         self._protocol = obfs.obfs(config['protocol'])
@@ -252,10 +248,7 @@ class UDPRelay(object):
         else:
             self._disconnect_ipset = None
 
-        if 'relay_rules' in self._config:
-            self._relay_rules = self._config['relay_rules'].copy()
-        else:
-            self._relay_rules = {}
+        self._relay_rules = self._config['relay_rules'].copy()
         self._is_pushing_relay_rules = False
 
         addrs = socket.getaddrinfo(self._listen_addr, self._listen_port, 0,
@@ -267,6 +260,8 @@ class UDPRelay(object):
         server_socket = socket.socket(af, socktype, proto)
         server_socket.bind((self._listen_addr, self._listen_port))
         server_socket.setblocking(False)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024 * 1024)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024 * 1024)
         self._server_socket = server_socket
         self._stat_callback = stat_callback
 
@@ -405,6 +400,9 @@ class UDPRelay(object):
                         continue
 
                 if has_higher_priority:
+                    continue
+					
+                if self._relay_rules[id]['dist_ip'] == '0.0.0.0':
                     continue
 
                 if self._relay_rules[id]['port'] == 0:

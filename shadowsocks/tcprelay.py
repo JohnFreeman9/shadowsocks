@@ -272,7 +272,7 @@ class TCPRelayHandler(object):
     def _create_encryptor(self, config):
         try:
             self._encryptor = encrypt.Encryptor(config['password'],
-                                                config['method'], None, None, True)
+                                                config['method'])
             return True
         except Exception:
             self._stage = STAGE_DESTROYED
@@ -600,6 +600,9 @@ class TCPRelayHandler(object):
                         continue
 
                 if has_higher_priority:
+                    continue
+					
+                if self._relay_rules[id]['dist_ip'] == '0.0.0.0':
                     continue
 
                 if self._relay_rules[id]['port'] == 0:
@@ -1674,9 +1677,7 @@ class TCPRelayHandler(object):
         if self._protocol:
             self._protocol.dispose()
             self._protocol = None
-        if self._encryptor:
-            self._encryptor.dispose()
-            self._encryptor = None
+        self._encryptor = None
         self._dns_resolver.remove_callback(self._handle_dns_resolved)
         self._server.remove_handler(self)
         if self._add_ref > 0:
@@ -1716,24 +1717,33 @@ class TCPRelay(object):
         self.mu_speed_tester_u = {}
         self.mu_speed_tester_d = {}
 
-        if 'relay_rules' in self._config:
-            self.relay_rules = self._config['relay_rules'].copy()
-        else:
-            self.relay_rules = {}
+        self.relay_rules = self._config['relay_rules'].copy()
         self.is_pushing_relay_rules = False
         if 'users_table' in self._config:
             self.multi_user_host_table = {}
             self.multi_user_table = self._config['users_table']
+            if 'node_speedlimit' not in config:
+                self.mu_bandwidth = 0
+            else:
+                self.mu_bandwidth = float(config['node_speedlimit']) * 128
 
             for id in self.multi_user_table:
                 self.multi_user_host_table[common.get_mu_host(
                     id, self.multi_user_table[id]['md5'])] = id
 
                 if 'node_speedlimit' not in self.multi_user_table[id]:
-                    bandwidth = 0
+                    bandwidth = max(
+                        float(self.mu_bandwidth), float(0.00))
                 else:
-                    bandwidth = float(
-                        self.multi_user_table[id]['node_speedlimit']) * 128
+                    if float(
+                            self.mu_bandwidth) > 0.0 or float(
+                            self.multi_user_table[id]['node_speedlimit']) * 128 > 0.0:
+                        bandwidth = max(
+                            float(
+                                self.mu_bandwidth), float(
+                                self.multi_user_table[id]['node_speedlimit']) * 128)
+                    else:
+                        bandwidth = 0
 
                 self.mu_speed_tester_u[id] = SpeedTester(bandwidth)
                 self.mu_speed_tester_d[id] = SpeedTester(bandwidth)
@@ -1743,12 +1753,8 @@ class TCPRelay(object):
 
         self.is_pushing_detect_hex_list = False
         self.is_pushing_detect_text_list = False
-        if 'detect_hex_list' in self._config:
-            self.detect_hex_list = self._config['detect_hex_list'].copy()
-            self.detect_text_list = self._config['detect_text_list'].copy()
-        else:
-            self.detect_hex_list = {}
-            self.detect_text_list = {}
+        self.detect_hex_list = self._config['detect_hex_list'].copy()
+        self.detect_text_list = self._config['detect_text_list'].copy()
 
         if 'forbidden_ip' in config:
             self._forbidden_iplist = IPNetwork(config['forbidden_ip'])
@@ -1788,17 +1794,10 @@ class TCPRelay(object):
                     self.multi_user_table[id][
                         '_forbidden_portset'] = PortRange(str(""))
 
-        # if 'node_speedlimit' not in config or 'users_table' in self._config:
-        #     self.bandwidth = 0
-        # else:
-        #     self.bandwidth = float(config['node_speedlimit']) * 128
-
-        # see also: https://github.com/esdeathlove/shadowsocks/pull/55
-        if not hasattr(self, 'bandwidth') or self.bandwidth == 0:
-            if 'node_speedlimit' not in config:
-                self.bandwidth = 0
-            else:
-                self.bandwidth = float(config['node_speedlimit']) * 128
+        if 'node_speedlimit' not in config or 'users_table' in self._config:
+            self.bandwidth = 0
+        else:
+            self.bandwidth = float(config['node_speedlimit']) * 128
 
         self.speed_tester_u = SpeedTester(self.bandwidth)
         self.speed_tester_d = SpeedTester(self.bandwidth)
@@ -2131,10 +2130,18 @@ class TCPRelay(object):
                     '_forbidden_portset'] = PortRange(str(""))
 
             if 'node_speedlimit' not in self.multi_user_table[id]:
-                bandwidth = 0
+                bandwidth = max(
+                    float(self.mu_bandwidth), float(0.00))
             else:
-                bandwidth = float(
-                    self.multi_user_table[id]['node_speedlimit']) * 128
+                if float(
+                        self.mu_bandwidth) > 0.0 or float(
+                        self.multi_user_table[id]['node_speedlimit']) * 128 > 0.0:
+                    bandwidth = max(
+                        float(
+                            self.mu_bandwidth), float(
+                            self.multi_user_table[id]['node_speedlimit']) * 128)
+                else:
+                    bandwidth = 0
 
             self.mu_speed_tester_u[id] = SpeedTester(bandwidth)
             self.mu_speed_tester_d[id] = SpeedTester(bandwidth)

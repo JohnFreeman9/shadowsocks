@@ -1,5 +1,5 @@
-﻿#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
 
 
 def load(name):
@@ -12,6 +12,7 @@ def load(name):
 
     try:
         import importlib
+
         obj = importlib.__import__(name)
         importlib.reload(obj)
         return obj

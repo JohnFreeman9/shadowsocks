@@ -69,9 +69,6 @@ class TableCipher(object):
             return translate(data, self._encrypt_table)
         else:
             return translate(data, self._decrypt_table)
-    
-    def clean(self):
-        pass
 
 class NoneCipher(object):
     def __init__(self, cipher_name, key, iv, op, crypto_path=None):
@@ -82,9 +79,6 @@ class NoneCipher(object):
 
     def update(self, data):
         return data
-
-    def clean(self):
-        pass
 
 ciphers = {
     'none': (16, 0, NoneCipher),

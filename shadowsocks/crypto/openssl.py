@@ -70,7 +70,6 @@ def load_openssl(crypto_path=None):
         ctx_cleanup = libcrypto.EVP_CIPHER_CTX_reset
     libcrypto.EVP_CIPHER_CTX_free.argtypes = (c_void_p,)
 
-
     libcrypto.RAND_bytes.restype = c_int
     libcrypto.RAND_bytes.argtypes = (c_void_p, c_int)
 
@@ -91,6 +90,7 @@ def load_cipher(cipher_name):
         return cipher()
     return None
 
+
 def rand_bytes(length):
     if not loaded:
         load_openssl()
@@ -99,6 +99,7 @@ def rand_bytes(length):
     if r <= 0:
         raise Exception('RAND_bytes return error')
     return buf.raw
+
 
 class OpenSSLCryptoBase(object):
     """
